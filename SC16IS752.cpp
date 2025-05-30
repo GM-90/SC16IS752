@@ -23,14 +23,19 @@
 // #define SC16IS750_DEBUG_PRINT
 #include <SC16IS752.h>
 
+SC16IS752::SC16IS752(TwoWire * _wire, uint8_t i2c_addr  = SC16IS750_ADDRESS_AD){
+  p_i2c = _wire ;
+  SC16IS752(SC16IS750_PROTOCOL_I2C,i2c_addr);
+}
+
+SC16IS752::SC16IS752(SPIClass * _spi, uint8_t _sspin ){
+  p_spi = _spi ;
+  SC16IS752(SC16IS750_PROTOCOL_SPI,i2c_addr);
+}
 
 SC16IS752::SC16IS752(uint8_t prtcl, uint8_t addr_sspin) : initialized(false)
 {
   protocol = prtcl;
-
-  //Punteros por default
-  p_i2c = & Wire ;
-  p_spi = & SPI ;
 
   if (protocol == SC16IS750_PROTOCOL_I2C) {
     // Datasheet uses extra read/write bit to describe I2C address.
