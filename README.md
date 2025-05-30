@@ -7,8 +7,10 @@ Added: Constructor Overload to accept other instances of I2C or SPI. (in my proj
 Example:
 
 #include <SPI.h>
+
 #include <SC16IS752.h>
 
 SPIClass spi3(SPI3_MOSI,SPI3_MISO,SPI3_SCK);
+
 SC16IS752 Bridge( &spi3 ,SS_pin);
 
