@@ -22,23 +22,15 @@
 
 // #define SC16IS750_DEBUG_PRINT
 #include <SC16IS752.h>
-#include <SPI.h>
-#include <Wire.h>
-
-#ifdef __AVR__
- # define WIRE Wire
-#elif defined(ESP8266) || defined(ESP32) // ESP8266/ESP32
- # define WIRE Wire
-#elif ESP32 // ESP8266
- # define WIRE Wire
-#else // Arduino Due
- # define WIRE Wire1
-#endif // ifdef __AVR__
 
 
 SC16IS752::SC16IS752(uint8_t prtcl, uint8_t addr_sspin) : initialized(false)
 {
   protocol = prtcl;
+
+  //Punteros por default
+  p_i2c = & Wire ;
+  p_spi = & SPI ;
 
   if (protocol == SC16IS750_PROTOCOL_I2C) {
     // Datasheet uses extra read/write bit to describe I2C address.
@@ -124,16 +116,16 @@ uint8_t SC16IS752::ReadRegister(uint8_t channel, uint8_t reg_addr)
   uint8_t result = 0;
 
   if (protocol == SC16IS750_PROTOCOL_I2C) { // register read operation via I2C
-    WIRE.beginTransmission(device_address_sspin);
-    WIRE.write((reg_addr << 3 | channel << 1));
-    WIRE.endTransmission(0);
-    WIRE.requestFrom(device_address_sspin, (uint8_t)1);
-    result = WIRE.read();
+    p_i2c->beginTransmission(device_address_sspin);
+    p_i2c->write((reg_addr << 3 | channel << 1));
+    p_i2c->endTransmission(0);
+    p_i2c->requestFrom(device_address_sspin, (uint8_t)1);
+    result = p_i2c->read();
   } else if (protocol == SC16IS750_PROTOCOL_SPI) { // register read operation via SPI
     ::digitalWrite(device_address_sspin, LOW);
     delayMicroseconds(10);
-    SPI.transfer(0x80 | ((reg_addr << 3 | channel << 1)));
-    result = SPI.transfer(0xff);
+    p_spi->transfer(0x80 | ((reg_addr << 3 | channel << 1)));
+    result = p_spi->transfer(0xff);
     delayMicroseconds(10);
     ::digitalWrite(device_address_sspin, HIGH);
   }
@@ -161,15 +153,15 @@ void SC16IS752::WriteRegister(uint8_t channel, uint8_t reg_addr, uint8_t val)
 #endif // ifdef  SC16IS750_DEBUG_PRINT
 
   if (protocol == SC16IS750_PROTOCOL_I2C) { // register read operation via I2C
-    WIRE.beginTransmission(device_address_sspin);
-    WIRE.write((reg_addr << 3 | channel << 1));
-    WIRE.write(val);
-    WIRE.endTransmission(1);
+    p_i2c->beginTransmission(device_address_sspin);
+    p_i2c->write((reg_addr << 3 | channel << 1));
+    p_i2c->write(val);
+    p_i2c->endTransmission(1);
   } else {
     ::digitalWrite(device_address_sspin, LOW);
     delayMicroseconds(10);
-    SPI.transfer((reg_addr << 3 | channel << 1));
-    SPI.transfer(val);
+    p_spi->transfer((reg_addr << 3 | channel << 1));
+    p_spi->transfer(val);
     delayMicroseconds(10);
     ::digitalWrite(device_address_sspin, HIGH);
   }
@@ -178,16 +170,16 @@ void SC16IS752::WriteRegister(uint8_t channel, uint8_t reg_addr, uint8_t val)
 void SC16IS752::Initialize()
 {
   if (protocol == SC16IS750_PROTOCOL_I2C) {
-    WIRE.begin();
+    p_i2c->begin();
   } else {
     ::pinMode(device_address_sspin, OUTPUT);
     ::digitalWrite(device_address_sspin, HIGH);
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setClockDivider(SPI_CLOCK_DIV4);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.begin();
+    p_spi->setDataMode(SPI_MODE0);
+    p_spi->setClockDivider(SPI_CLOCK_DIV4);
+    p_spi->setBitOrder(MSBFIRST);
+    p_spi->begin();
 
-    // SPI.setClockDivider(32);
+    // p_spi->setClockDivider(32);
   }
   ResetDevice();
   initialized = true;

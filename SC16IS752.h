@@ -111,9 +111,23 @@
 
 #define     SC16IS752_DEFAULT_SPEED             9600
 
+#include <Wire.h>
+#include <SPI.h>
+
 // class SC16IS752 : public Stream
 class SC16IS752 {
 public:
+  SC16IS752(TwoWire * _wire, uint8_t i2c_addr  = SC16IS750_ADDRESS_AD){
+    protocol = SC16IS750_PROTOCOL_I2C ;
+    p_i2c = _wire ;
+    device_address_sspin = i2c_addr ;
+  }
+
+  SC16IS752(SPIClass * _spi, uint8_t _sspin ){
+    protocol = SC16IS750_PROTOCOL_SPI ;
+    p_spi = _spi ;
+    device_address_sspin = _sspin ;
+  }
 
   SC16IS752(uint8_t prtcl = SC16IS750_PROTOCOL_I2C,
             uint8_t addr  = SC16IS750_ADDRESS_AD);
@@ -147,6 +161,8 @@ public:
   void    GPIOLatch(uint8_t latch);
 
 private:
+  TwoWire * p_i2c;
+  SPIClass * p_spi;
 
   int peek_buf[2] = {-1, -1};
   uint8_t peek_flag[2] = {0, 0};
