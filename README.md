@@ -10,5 +10,6 @@ Example:
 #include <SC16IS752.h>
 
 SPIClass spi3(SPI3_MOSI,SPI3_MISO,SPI3_SCK);
+
 SC16IS752 Bridge( &spi3 ,SS_pin);
 
