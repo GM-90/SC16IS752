@@ -23,14 +23,14 @@
 // #define SC16IS750_DEBUG_PRINT
 #include <SC16IS752.h>
 
-SC16IS752::SC16IS752(TwoWire * _wire, uint8_t i2c_addr  = SC16IS750_ADDRESS_AD){
+SC16IS752::SC16IS752(TwoWire * _wire, uint8_t i2c_addr){
   p_i2c = _wire ;
-  SC16IS752(SC16IS750_PROTOCOL_I2C,i2c_addr);
+  SC16IS752((uint8_t)SC16IS750_PROTOCOL_I2C,i2c_addr);
 }
 
 SC16IS752::SC16IS752(SPIClass * _spi, uint8_t _sspin ){
   p_spi = _spi ;
-  SC16IS752(SC16IS750_PROTOCOL_SPI,i2c_addr);
+  SC16IS752((uint8_t)SC16IS750_PROTOCOL_SPI,_sspin);
 }
 
 SC16IS752::SC16IS752(uint8_t prtcl, uint8_t addr_sspin) : initialized(false)
@@ -204,7 +204,7 @@ int16_t SC16IS752::SetBaudrate(uint8_t channel, uint32_t baudrate) // return err
     prescaler = 4;
   }
 
-  divisor = (SC16IS750_CRYSTCAL_FREQ / prescaler) / (baudrate * 16);
+  divisor = (CRYSTCAL_FREQ / prescaler) / (baudrate * 16);
 
   temp_lcr  = ReadRegister(channel, SC16IS750_REG_LCR);
   temp_lcr |= 0x80;
@@ -219,7 +219,7 @@ int16_t SC16IS752::SetBaudrate(uint8_t channel, uint32_t baudrate) // return err
   WriteRegister(channel, SC16IS750_REG_LCR, temp_lcr);
 
 
-  actual_baudrate = (SC16IS750_CRYSTCAL_FREQ / prescaler) / (16 * divisor);
+  actual_baudrate = (CRYSTCAL_FREQ / prescaler) / (16 * divisor);
   error           = ((float)actual_baudrate - baudrate) * 1000 / baudrate;
 #ifdef  SC16IS750_DEBUG_PRINT
   Serial.print("Desired baudrate: ");
