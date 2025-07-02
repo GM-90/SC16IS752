@@ -25,33 +25,31 @@
 
 SC16IS752::SC16IS752(TwoWire * _wire, uint8_t i2c_addr){
   p_i2c = _wire ;
-  SC16IS752((uint8_t)SC16IS750_PROTOCOL_I2C,i2c_addr);
+  protocol = SC16IS750_PROTOCOL_I2C ;
+  initialized = false;
+  
+  // Datasheet uses extra read/write bit to describe I2C address.
+  // Actual address in communication has one bit shifted.
+  if ((i2c_addr >= 0x48) && (i2c_addr <= 0x57)) {
+    device_address_sspin = i2c_addr;
+  } else {
+    device_address_sspin = (i2c_addr >> 1);
+  }
+
+  peek_flag[SC16IS752_CHANNEL_A] = 0;
+  peek_flag[SC16IS752_CHANNEL_B] = 0;
 }
 
 SC16IS752::SC16IS752(SPIClass * _spi, uint8_t _sspin ){
   p_spi = _spi ;
-  SC16IS752((uint8_t)SC16IS750_PROTOCOL_SPI,_sspin);
-}
+  protocol = SC16IS750_PROTOCOL_SPI ;
+  initialized = false;
+  
+  //CS pin
+  device_address_sspin = _sspin ;
 
-SC16IS752::SC16IS752(uint8_t prtcl, uint8_t addr_sspin) : initialized(false)
-{
-  protocol = prtcl;
-
-  if (protocol == SC16IS750_PROTOCOL_I2C) {
-    // Datasheet uses extra read/write bit to describe I2C address.
-    // Actual address in communication has one bit shifted.
-    if ((addr_sspin >= 0x48) && (addr_sspin <= 0x57)) {
-      device_address_sspin = addr_sspin;
-    } else {
-      device_address_sspin = (addr_sspin >> 1);
-    }
-  } else {
-    device_address_sspin = addr_sspin;
-  }
   peek_flag[SC16IS752_CHANNEL_A] = 0;
   peek_flag[SC16IS752_CHANNEL_B] = 0;
-
-  //	timeout = 1000;
 }
 
 void SC16IS752::begin(uint32_t baud_A, uint32_t baud_B)
@@ -600,6 +598,21 @@ uint8_t SC16IS752::ping()
   }
 
   return 1;
+}
+
+bool SC16IS752::test_i2c_Connection() {
+  uint8_t dev_addr;
+
+  if (protocol == SC16IS750_PROTOCOL_I2C){
+    uint8_t error;
+    p_i2c->beginTransmission(device_address_sspin);
+    error = p_i2c->endTransmission();
+
+    if( !error ) return true;
+    else         return false;
+  }
+  // si es comunicacion SPI
+  return false;
 }
 
 /*

@@ -118,9 +118,6 @@ public:
   SC16IS752(TwoWire * _wire, uint8_t i2c_addr  = SC16IS750_ADDRESS_AD);
   SC16IS752(SPIClass * _spi, uint8_t _sspin );
 
-  SC16IS752(uint8_t prtcl = SC16IS750_PROTOCOL_I2C,
-            uint8_t addr  = SC16IS750_ADDRESS_AD);
-
   //call before "begin"
   void Set_CRYSTCAL_FREQ(unsigned int Freq){
     CRYSTCAL_FREQ = Freq ;
@@ -140,6 +137,7 @@ public:
                        uint8_t value);
   uint8_t digitalRead(uint8_t pin);
   uint8_t ping();
+  bool test_i2c_Connection();
 
   //	void setTimeout(uint32_t);
   size_t readBytes(uint8_t channel, uint8_t *buffer, size_t length);
